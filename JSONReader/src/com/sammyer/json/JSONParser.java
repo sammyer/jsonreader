@@ -323,7 +323,7 @@ public class JSONParser {
 			else if (ctype.clazz.equals(long.class)) arr.put(Array.getLong(itemArr, i));
 			else if (ctype.clazz.equals(float.class)) arr.put(Array.getFloat(itemArr, i));
 			else if (ctype.clazz.equals(double.class)) arr.put(Array.getDouble(itemArr, i));
-			else if (ctype.clazz.equals(char.class)) arr.put(Array.getChar(itemArr, i));
+			else if (ctype.clazz.equals(char.class)) arr.put(Character.toString(Array.getChar(itemArr, i)));
 			else if (ctype.clazz.equals(boolean.class)) arr.put(Array.getBoolean(itemArr, i));
 			else if (ctype.type==FieldType.CLASS) arr.put(classToJSON(Array.get(itemArr, i)));
 			else if (ctype.type==FieldType.LIST) arr.put(listToJSON((List<?>)Array.get(itemArr, i),ctype.subclass));
