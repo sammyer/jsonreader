@@ -3,6 +3,9 @@ sammyer
 */
 package com.sammyer.jsonreader.test;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import junit.framework.Assert;
 
 import org.json.JSONException;
@@ -114,6 +117,108 @@ public class JSONTestCase extends AndroidTestCase {
 			assertEquals(model.objList.size(), 2);
 			assertEquals(model.objList.get(1), testObjB);
 		} catch (JSONException e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+	
+	public void testWritePrimitives() {
+		PrimitiveModel model=new PrimitiveModel();
+		model.b=true;
+		model.by=0x34;
+		model.c='$';
+		model.d=-1234.567;
+		model.f=43.21f;
+		model.i=-1;
+		model.l=9999999999999L;
+		model.s=-135;
+		model.str="Hello";
+		
+		try {
+			JSONObject json=JSONParser.toJSON(model);
+			PrimitiveModel model2=JSONParser.parse(json, PrimitiveModel.class);
+			assertEquals(model,model2);
+		} catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+	
+	public void testWriteObjects() {
+		ObjectModel model=new ObjectModel();
+		model.json=new JSONObject();
+		try {
+			model.json.put("test", "Hello");
+		} catch (JSONException e1) {
+			e1.printStackTrace();
+		}
+		model.obj=testObjA;
+		
+		JSONObject json=JSONParser.toJSON(model);
+		try {
+			assertEquals(json.getJSONObject("json"),model.json);
+			assertEquals(json.getJSONObject("obj").getString("name"), testObjA.name);
+			assertEquals(json.getJSONObject("obj").getInt("age"), testObjA.age);
+		} catch (JSONException e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+	
+	char[] testCharArray={'z','x'};
+	float[] testFloatArray={1,2,3.25f};
+	int[] testIntArray={1,2,5};
+	String[] testStrArray={"Hello","World"};
+	ModelB[] testObjArray={testObjA,testObjB};
+	
+	public void testWriteArrays() {
+		ArrayModel model=new ArrayModel();
+		String[][] test2dArray={{"x","Asd"},{"Grob","Flog"}};
+		int[][][] test3dArray={{{3,2,1},{4,5},{6}},{{1,6,4}}};
+		
+		model.arr2d=test2dArray;
+		model.arr3d=test3dArray;
+		model.carr=testCharArray;
+		model.farr=testFloatArray;
+		model.iarr=testIntArray;
+		model.sarr=testStrArray;
+		model.objArr=testObjArray;
+		
+		try {
+			JSONObject json=JSONParser.toJSON(model);
+			ArrayModel model2=JSONParser.parse(json, ArrayModel.class);
+			assertEquals(model,model2);
+			//Log.d("jsontest", "arraymodel : "+json.toString());
+			/*
+			assertTrue(Arrays.deepEquals(model.arr2d, model2.arr2d));
+			assertEquals(model.arr3d, model2.arr3d);
+			assertEquals(model.carr, model2.carr);
+			assertEquals(model.farr, model2.farr);
+			assertEquals(model.iarr, model2.iarr);
+			assertEquals(model.sarr, model2.sarr);
+			assertEquals(model.objArr, model2.objArr);
+			*/
+			
+		} catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+	
+	public void testWriteLists() {
+		ListModel model=new ListModel();
+		model.clist=new ArrayList<Character>();
+		model.flist=new ArrayList<Float>();
+		model.ilist=new ArrayList<Integer>();
+		for (int i=0;i<testCharArray.length;i++) model.clist.add(Character.valueOf(testCharArray[i]));
+		for (int i=0;i<testFloatArray.length;i++) model.flist.add(Float.valueOf(testFloatArray[i]));
+		for (int i=0;i<testIntArray.length;i++) model.ilist.add(Integer.valueOf(testIntArray[i]));
+		model.slist=new ArrayList<String>(Arrays.asList(testStrArray));
+		model.objList=new ArrayList<ModelB>(Arrays.asList(testObjArray));
+		model.objListBasic=Arrays.asList(testObjArray);
+		model.objColl=Arrays.asList(testObjArray);
+		
+		try {
+			JSONObject json=JSONParser.toJSON(model);
+			ListModel model2=JSONParser.parse(json, ListModel.class);
+			assertEquals(model,model2);
+		} catch (Exception e) {
 			Assert.fail(e.getMessage());
 		}
 	}
