@@ -60,13 +60,24 @@ public class JSONParser {
 	}
 	
 	private static void logException(Exception e) {
-		if (DEBUG) Log.e(TAG,"jpt errx - "+e.toString());
-		e.printStackTrace();
+		if (DEBUG) {
+			Log.e(TAG,"jpt errx - "+e.toString());
+			e.printStackTrace();
+		}
+	}
+	private static void logMissingName(String name) {
+		if (DEBUG) {
+			Log.w(TAG,"field missing in json - "+name);
+		}
 	}
 	
 	private static void parsePrimitiveField(JSONObject json, Object obj, Field field)
 			throws IllegalArgumentException, IllegalAccessException, JSONException {
 		String name=field.getName();
+		if (!json.has(name)) {
+			logMissingName(name);
+			return;
+		}
 		Class<?> clazz=field.getType();
 		if (DEBUG) Log.i(TAG, "parsePrimitiveField "+name);
 		
@@ -101,8 +112,12 @@ public class JSONParser {
 	private static void parseClassField(JSONObject json, Object obj, Field field) 
 			throws JSONException, IllegalArgumentException, IllegalAccessException {
 		String name=field.getName();
-		
 		if (DEBUG) Log.i(TAG, "parseClassField "+name);
+		if (!json.has(name)) {
+			logMissingName(name);
+			return;
+		}
+		
 		JSONObject childJson;
 		childJson=json.getJSONObject(name);
 		field.setAccessible(true);
@@ -112,7 +127,12 @@ public class JSONParser {
 	private static void parseJsonField(JSONObject json, Object obj, Field field) 
 			throws JSONException, IllegalArgumentException, IllegalAccessException {
 		String name=field.getName();
-		if (DEBUG) Log.i(TAG, "parseClassField "+name);
+		if (DEBUG) Log.i(TAG, "parseJsonField "+name);
+		if (!json.has(name)) {
+			logMissingName(name);
+			return;
+		}
+		
 		JSONObject childJson;
 		childJson=json.getJSONObject(name);
 		field.setAccessible(true);
@@ -125,6 +145,10 @@ public class JSONParser {
 		String name=field.getName();
 		ClassData cdata=new ClassData(field).subclass;
 		if (DEBUG) Log.i(TAG, "parseListField "+name+" / "+new ClassData(field));
+		if (!json.has(name)) {
+			logMissingName(name);
+			return;
+		}
 		
 		JSONArray jsonarr;
 		jsonarr=json.getJSONArray(name);
@@ -204,6 +228,10 @@ public class JSONParser {
 		String name=field.getName();
 		ClassData cdata=new ClassData(field);
 		if (DEBUG) Log.i(TAG, "parseArrayField "+name+" cl="+cdata);
+		if (!json.has(name)) {
+			logMissingName(name);
+			return;
+		}
 		
 		JSONArray jsonarr;
 		jsonarr=json.getJSONArray(name);
