@@ -37,21 +37,25 @@ public class JSONParser {
 		}
 		for (Field field:clazz.getDeclaredFields()) {
 			if (field.isAnnotationPresent(JSONProperty.class)) {
-				parseField(json,obj,field);
+				JSONProperty annotation=field.getAnnotation(JSONProperty.class);
+				String jsonKey=annotation.value();
+				//default to variable name
+				if (!isValidJsonKey(jsonKey)) jsonKey=field.getName();
+				parseField(json, obj, field, jsonKey);
 			}
 		}
 		return obj;
 	}
 	
-	private static void parseField(JSONObject json, Object obj, Field field) {
+	private static void parseField(JSONObject json, Object obj, Field field, String jsonKey) {
 		ClassData fieldData=new ClassData(field);
 		if (fieldData.clazz==null) return;
 		try {
-			if (fieldData.type==FieldType.PRIMITIVE) parsePrimitiveField(json, obj, field);
-			else if (fieldData.type==FieldType.CLASS) parseClassField(json, obj, field);
-			else if (fieldData.type==FieldType.LIST) parseListField(json, obj, field);
-			else if (fieldData.type==FieldType.ARRAY) parseArrayField(json, obj, field);
-			else if (fieldData.type==FieldType.JSON) parseJsonField(json, obj, field);
+			if (fieldData.type==FieldType.PRIMITIVE) parsePrimitiveField(json, obj, field,jsonKey);
+			else if (fieldData.type==FieldType.CLASS) parseClassField(json, obj, field,jsonKey);
+			else if (fieldData.type==FieldType.LIST) parseListField(json, obj, field,jsonKey);
+			else if (fieldData.type==FieldType.ARRAY) parseArrayField(json, obj, field,jsonKey);
+			else if (fieldData.type==FieldType.JSON) parseJsonField(json, obj, field,jsonKey);
 		} catch (JSONException e) {
 			logException(e);
 		} catch (Exception e) {
@@ -71,9 +75,8 @@ public class JSONParser {
 		}
 	}
 	
-	private static void parsePrimitiveField(JSONObject json, Object obj, Field field)
+	private static void parsePrimitiveField(JSONObject json, Object obj, Field field, String name)
 			throws IllegalArgumentException, IllegalAccessException, JSONException {
-		String name=field.getName();
 		if (!json.has(name)) {
 			logMissingName(name);
 			return;
@@ -109,9 +112,8 @@ public class JSONParser {
 		
 	}
 	
-	private static void parseClassField(JSONObject json, Object obj, Field field) 
+	private static void parseClassField(JSONObject json, Object obj, Field field, String name) 
 			throws JSONException, IllegalArgumentException, IllegalAccessException {
-		String name=field.getName();
 		if (DEBUG) Log.i(TAG, "parseClassField "+name);
 		if (!json.has(name)) {
 			logMissingName(name);
@@ -124,9 +126,8 @@ public class JSONParser {
 		field.set(obj, parseClass(childJson,field.getType()));
 	}
 
-	private static void parseJsonField(JSONObject json, Object obj, Field field) 
+	private static void parseJsonField(JSONObject json, Object obj, Field field, String name) 
 			throws JSONException, IllegalArgumentException, IllegalAccessException {
-		String name=field.getName();
 		if (DEBUG) Log.i(TAG, "parseJsonField "+name);
 		if (!json.has(name)) {
 			logMissingName(name);
@@ -140,9 +141,8 @@ public class JSONParser {
 	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private static void parseListField(JSONObject json, Object obj, Field field)
+	private static void parseListField(JSONObject json, Object obj, Field field, String name)
 		throws IllegalArgumentException, IllegalAccessException, JSONException {
-		String name=field.getName();
 		ClassData cdata=new ClassData(field).subclass;
 		if (DEBUG) Log.i(TAG, "parseListField "+name+" / "+new ClassData(field));
 		if (!json.has(name)) {
@@ -223,9 +223,8 @@ public class JSONParser {
 	}
 
 	
-	private static void parseArrayField(JSONObject json, Object obj, Field field) 
+	private static void parseArrayField(JSONObject json, Object obj, Field field, String name) 
 		throws IllegalArgumentException, IllegalAccessException, JSONException {
-		String name=field.getName();
 		ClassData cdata=new ClassData(field);
 		if (DEBUG) Log.i(TAG, "parseArrayField "+name+" cl="+cdata);
 		if (!json.has(name)) {
@@ -303,7 +302,10 @@ public class JSONParser {
 			field.setAccessible(true);
 			
 			ClassData ctype=new ClassData(field);
-			String name=field.getName();
+			JSONProperty annotation=field.getAnnotation(JSONProperty.class);
+			String name=annotation.value();
+			if (!isValidJsonKey(name)) name=field.getName();
+			
 			if (ctype.clazz==null) continue;
 			try {
 				if (ctype.type!=FieldType.PRIMITIVE&&field.get(obj)==null) continue;
@@ -362,6 +364,11 @@ public class JSONParser {
 	}
 	
 //--------------------------------------------------------------------------------------------
+	
+	private static boolean isValidJsonKey(String key) {
+		if (key==null||key=="") return false;
+		return true;
+	}
 	
 	private enum FieldType {
 		PRIMITIVE,LIST,ARRAY,CLASS,JSON

@@ -121,6 +121,20 @@ public class JSONTestCase extends AndroidTestCase {
 		}
 	}
 	
+	public void testReadKey() {
+		String s="{hasKey=\"xxxx\", withoutKey=\"yyyy\"}";
+		try {
+			JSONObject obj = new JSONObject(s);
+			KeyNameModel model=JSONParser.parse(obj, KeyNameModel.class);
+			
+			assertEquals(model.withKey,"xxxx");
+			assertEquals(model.withoutKey,"yyyy");
+		} catch (JSONException e) {
+			Assert.fail(e.getMessage());
+		}
+		
+	}	
+	
 	public void testWritePrimitives() {
 		PrimitiveModel model=new PrimitiveModel();
 		model.b=true;
@@ -222,4 +236,5 @@ public class JSONTestCase extends AndroidTestCase {
 			Assert.fail(e.getMessage());
 		}
 	}
+
 }
